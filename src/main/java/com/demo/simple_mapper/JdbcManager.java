@@ -11,14 +11,19 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+
+import org.junit.Test;
 
 import com.demo.simple_mapper.bean.Mapper;
 
 /**
  * @since 2018年6月29日 上午10:30:20
  * @version 1.0.0
- * @author 
+ * @author
  *
  */
 public class JdbcManager {
@@ -40,13 +45,28 @@ public class JdbcManager {
 		return conn;
 	}
 
-	public static void main(String[] args) {
+	@Test
+	public void test1() {
 		JdbcManager jdbcManager = new JdbcManager();
 		Mapper mapper = new Mapper();
-		mapper.setStatement("select * from area");
+		mapper.setStatement("select * from area where id = #{id}");
 		mapper.setResultType("com.demo.simple_mapper.test.Area");
 		mapper.setType("select");
-		jdbcManager.selectExecute(mapper);
+		Map<String, Object> map = new HashMap<>();
+		map.put("id", 1);
+		jdbcManager.selectExecute(mapper, map);
+	}
+
+	@Test
+	public void test() {
+		String statement = "select * from area where id = #{id}";
+
+		while (statement.indexOf("#{") >= 0) {
+			String substring = statement.substring(statement.indexOf("#{") + 2, statement.indexOf("}"));
+			statement = statement.replace("#{" + substring + "}", "?");
+
+		}
+
 	}
 
 	public int updateExecute(Mapper mapper) {
@@ -57,11 +77,25 @@ public class JdbcManager {
 	/**
 	 * 
 	 */
-	public List<Object> selectExecute(Mapper mapper) {
+	public List<Object> selectExecute(Mapper mapper, Map<String, Object> map2) {
 		List<Object> list = new ArrayList<>();
+
+		Map<String, Object> paramMap = map2;
 		try {
 			Connection conn = getConn();
-			PreparedStatement stmt = conn.prepareStatement(mapper.getStatement());
+			String statement = mapper.getStatement();
+			Map<Integer, Object> map = new HashMap<>();
+			int i = 1;
+			while (statement.indexOf("#{") >= 0) {
+				String substring = statement.substring(statement.indexOf("#{") + 2, statement.indexOf("}"));
+				statement = statement.replace("#{" + substring + "}", "?");
+				Object object = paramMap.get(substring);
+				map.put(i, object);
+			}
+			PreparedStatement stmt = conn.prepareStatement(statement);
+			for (Entry<Integer, Object> entry : map.entrySet()) {
+				stmt.setObject(entry.getKey(), entry.getValue());
+			}
 			ResultSet rs = stmt.executeQuery();
 			while (rs.next()) {
 				Class<?> forName = Class.forName(mapper.getResultType());
@@ -70,12 +104,12 @@ public class JdbcManager {
 				for (Field field : declaredFields) {
 					Class<?> type = field.getType();
 					String name = field.getName();
-					if(String.class.equals(type)){
+					if (String.class.equals(type)) {
 						String string = rs.getString(name);
 						field.setAccessible(true);
 						field.set(newInstance, string);
 					}
-					if(Integer.class.equals(type)){
+					if (Integer.class.equals(type)) {
 						Integer string = rs.getInt(name);
 						field.setAccessible(true);
 						field.set(newInstance, string);

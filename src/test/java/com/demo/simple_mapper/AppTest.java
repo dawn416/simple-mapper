@@ -2,7 +2,9 @@ package com.demo.simple_mapper;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.junit.Test;
 
@@ -22,7 +24,9 @@ public class AppTest {
 
 		MyHandler myHandler = new MyHandler();
 		AreaMapper newInstance = myHandler.newInstance(AreaMapper.class);
-		List<Area> selectById = newInstance.selectById(1);
+		Map<String, Object> map = new HashMap<>();
+		map.put("id", 3);
+		List<Area> selectById = newInstance.selectById(map);
 		System.out.println(selectById);
 	}
 }
