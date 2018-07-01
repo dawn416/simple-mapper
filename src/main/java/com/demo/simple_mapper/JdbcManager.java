@@ -57,8 +57,7 @@ public class JdbcManager {
 				if (MyHandler.isMany.get()) {
 					return selectExecute;
 				} else {
-					Object object = selectExecute.get(0);
-					return object;
+					return selectExecute.get(0);
 				}
 			} catch (ClassNotFoundException | InstantiationException | IllegalAccessException e) {
 				e.printStackTrace();
@@ -79,8 +78,7 @@ public class JdbcManager {
 	 * @throws SQLException
 	 */
 	public int updateExecute(PreparedStatement stmt) throws SQLException {
-		int executeUpdate = stmt.executeUpdate();
-		return executeUpdate;
+		return stmt.executeUpdate();
 	}
 
 	/**
