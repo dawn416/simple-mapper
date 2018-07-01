@@ -10,7 +10,7 @@
 		{
 			"id": "updateById",
 			"type": "update",
-			"statement": "update area set name='111' where id = 1",
+			"statement": "update area set name=#{name} where id = #{id}",
 			"resultType": "int"
 		}
 	]

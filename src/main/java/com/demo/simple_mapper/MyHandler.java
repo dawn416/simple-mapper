@@ -46,15 +46,9 @@ public class MyHandler implements InvocationHandler {
 		Map<String, Object> map = (Map<String, Object>) args[0];
 		for (Mapper mapper : property.getMapper()) {
 			if (name.equals(mapper.getId())) {
-				if ("select".equals(mapper.getType())) {
-					return jdbcManager.selectExecute(mapper, map);
-				}
-				if ("update".equals(mapper.getType())) {
 
-				}
-				if ("delete".equals(mapper.getType())) {
+				return jdbcManager.selectExecute(mapper, map);
 
-				}
 			}
 		}
 		return null;

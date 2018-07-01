@@ -14,6 +14,8 @@ import java.util.Map;
  *
  */
 public interface AreaMapper {
-	public List<Area> selectById(Map<String, Object> id);
+	public List<Area> selectById(Map<String, Object> map);
+
+	public int updateById(Map<String, Object> map);
 
 }

@@ -58,13 +58,13 @@ public class JdbcManager {
 	}
 
 	@Test
-	public void test() {
-		String statement = "select * from area where id = #{id}";
-
+	public void test(String statement, Map map, Map<String, Object> paramMap) {
+		int i = 1;
 		while (statement.indexOf("#{") >= 0) {
 			String substring = statement.substring(statement.indexOf("#{") + 2, statement.indexOf("}"));
 			statement = statement.replace("#{" + substring + "}", "?");
-
+			Object object = paramMap.get(substring);
+			map.put(i, object);
 		}
 
 	}
@@ -77,7 +77,7 @@ public class JdbcManager {
 	/**
 	 * 
 	 */
-	public List<Object> selectExecute(Mapper mapper, Map<String, Object> map2) {
+	public Object selectExecute(Mapper mapper, Map<String, Object> map2) {
 		List<Object> list = new ArrayList<>();
 
 		Map<String, Object> paramMap = map2;
@@ -86,40 +86,55 @@ public class JdbcManager {
 			String statement = mapper.getStatement();
 			Map<Integer, Object> map = new HashMap<>();
 			int i = 1;
+			// test(statement, map, paramMap);
+			// System.out.println(statement);
 			while (statement.indexOf("#{") >= 0) {
 				String substring = statement.substring(statement.indexOf("#{") + 2, statement.indexOf("}"));
 				statement = statement.replace("#{" + substring + "}", "?");
 				Object object = paramMap.get(substring);
 				map.put(i, object);
+				i++;
 			}
+			System.out.println(statement);
 			PreparedStatement stmt = conn.prepareStatement(statement);
+			System.out.println(map.size());
 			for (Entry<Integer, Object> entry : map.entrySet()) {
 				stmt.setObject(entry.getKey(), entry.getValue());
+				System.out.println("param setting");
 			}
-			ResultSet rs = stmt.executeQuery();
-			while (rs.next()) {
-				Class<?> forName = Class.forName(mapper.getResultType());
-				Object newInstance = forName.newInstance();
-				Field[] declaredFields = forName.getDeclaredFields();
-				for (Field field : declaredFields) {
-					Class<?> type = field.getType();
-					String name = field.getName();
-					if (String.class.equals(type)) {
-						String string = rs.getString(name);
-						field.setAccessible(true);
-						field.set(newInstance, string);
+			if ("select".equals(mapper.getType())) {
+				ResultSet rs = stmt.executeQuery();
+				while (rs.next()) {
+					Class<?> forName = Class.forName(mapper.getResultType());
+					Object newInstance = forName.newInstance();
+					Field[] declaredFields = forName.getDeclaredFields();
+					for (Field field : declaredFields) {
+						Class<?> type = field.getType();
+						String name = field.getName();
+						if (String.class.equals(type)) {
+							String string = rs.getString(name);
+							field.setAccessible(true);
+							field.set(newInstance, string);
+						}
+						if (Integer.class.equals(type)) {
+							Integer string = rs.getInt(name);
+							field.setAccessible(true);
+							field.set(newInstance, string);
+						}
 					}
-					if (Integer.class.equals(type)) {
-						Integer string = rs.getInt(name);
-						field.setAccessible(true);
-						field.set(newInstance, string);
-					}
+					list.add(newInstance);
 				}
-				list.add(newInstance);
+				DBManager.close(rs);
+				DBManager.close(stmt);
+				DBManager.close(conn);
+			} else if ("update".equals(mapper.getType())) {
+				System.out.println("update");
+				int executeUpdate = stmt.executeUpdate();
+				System.out.println("result is " + executeUpdate);
+				DBManager.close(stmt);
+				DBManager.close(conn);
+				return executeUpdate;
 			}
-			DBManager.close(rs);
-			DBManager.close(stmt);
-			DBManager.close(conn);
 
 		} catch (Exception e) {
 			e.printStackTrace();
