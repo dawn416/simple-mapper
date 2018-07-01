@@ -6,7 +6,6 @@ package com.demo.simple_mapper;
 
 import java.lang.reflect.Field;
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -25,27 +24,6 @@ import com.demo.simple_mapper.bean.Mapper;
  *
  */
 public class JdbcManager {
-	/**
-	 * 获取数据库连接
-	 * 
-	 * @return
-	 */
-	private static Connection getConn() {
-		String driver = "com.mysql.jdbc.Driver";
-		String url = "jdbc:mysql://localhost:3306/saizhi?useUnicode=true&characterEncoding=UTF8";
-		String username = "root";
-		String password = "123456";
-		Connection conn = null;
-		try {
-			Class.forName(driver);
-			conn = DriverManager.getConnection(url, username, password);
-		} catch (ClassNotFoundException e) {
-			e.printStackTrace();
-		} catch (SQLException e) {
-			e.printStackTrace();
-		}
-		return conn;
-	}
 
 	/**
 	 * 准备执行sql
@@ -55,7 +33,7 @@ public class JdbcManager {
 	 * @throws SQLException
 	 */
 	public Object sqlPrepare(Mapper mapper, Map<String, Object> paramMap) throws SQLException {
-		Connection conn = getConn();
+		Connection conn = DBManager.getConn();
 		String statement = mapper.getStatement();
 		Map<Integer, Object> sqlAttrMap = new HashMap<>();
 

@@ -2,7 +2,9 @@ package com.demo.simple_mapper;
 
 import java.io.Closeable;
 import java.sql.Connection;
+import java.sql.DriverManager;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.sql.Statement;
 
 /**
@@ -18,15 +20,21 @@ public class DBManager {
 	 * 
 	 * @return java.sql.Connection
 	 */
-	public static Connection createConn() {
-		// try {
-		// Class.forName(App.DRIVER);
-		// return DriverManager.getConnection(App.URL, App.USER, App.PASS);
-		// } catch (Exception e) {
-		// e.printStackTrace();
-		// System.out.println("获取数据库连接失败");
-		return null;
-		// }
+	public static Connection getConn() {
+		String driver = "com.mysql.jdbc.Driver";
+		String url = "jdbc:mysql://localhost:3306/saizhi?useUnicode=true&characterEncoding=UTF8";
+		String username = "root";
+		String password = "123456";
+		Connection conn = null;
+		try {
+			Class.forName(driver);
+			conn = DriverManager.getConnection(url, username, password);
+		} catch (ClassNotFoundException e) {
+			e.printStackTrace();
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return conn;
 	}
 
 	public static void close(ResultSet rs, Statement stmt, Connection conn) {
