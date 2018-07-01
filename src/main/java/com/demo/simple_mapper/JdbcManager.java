@@ -16,8 +16,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import org.junit.Test;
-
 import com.demo.simple_mapper.bean.Mapper;
 
 /**
@@ -27,7 +25,11 @@ import com.demo.simple_mapper.bean.Mapper;
  *
  */
 public class JdbcManager {
-
+	/**
+	 * 获取数据库连接
+	 * 
+	 * @return
+	 */
 	private static Connection getConn() {
 		String driver = "com.mysql.jdbc.Driver";
 		String url = "jdbc:mysql://localhost:3306/saizhi?useUnicode=true&characterEncoding=UTF8";
@@ -45,101 +47,99 @@ public class JdbcManager {
 		return conn;
 	}
 
-	@Test
-	public void test1() {
-		JdbcManager jdbcManager = new JdbcManager();
-		Mapper mapper = new Mapper();
-		mapper.setStatement("select * from area where id = #{id}");
-		mapper.setResultType("com.demo.simple_mapper.test.Area");
-		mapper.setType("select");
-		Map<String, Object> map = new HashMap<>();
-		map.put("id", 1);
-		jdbcManager.selectExecute(mapper, map);
-	}
+	/**
+	 * 准备执行sql
+	 * 
+	 * @param mapper
+	 * @param paramMap
+	 * @throws SQLException
+	 */
+	public Object sqlPrepare(Mapper mapper, Map<String, Object> paramMap) throws SQLException {
+		Connection conn = getConn();
+		String statement = mapper.getStatement();
+		Map<Integer, Object> sqlAttrMap = new HashMap<>();
 
-	@Test
-	public void test(String statement, Map map, Map<String, Object> paramMap) {
 		int i = 1;
 		while (statement.indexOf("#{") >= 0) {
 			String substring = statement.substring(statement.indexOf("#{") + 2, statement.indexOf("}"));
 			statement = statement.replace("#{" + substring + "}", "?");
 			Object object = paramMap.get(substring);
-			map.put(i, object);
+			sqlAttrMap.put(i, object);
+			i++;
+		}
+		PreparedStatement stmt = conn.prepareStatement(statement);
+		for (Entry<Integer, Object> entry : sqlAttrMap.entrySet()) {
+			stmt.setObject(entry.getKey(), entry.getValue());
 		}
 
-	}
+		if ("select".equals(mapper.getType())) {
+			try {
+				List selectExecute = selectExecute(mapper, stmt);
 
-	public int updateExecute(Mapper mapper) {
-
-		return 0;
+				if (MyHandler.isMany.get()) {
+					return selectExecute;
+				} else {
+					Object object = selectExecute.get(0);
+					return object;
+				}
+			} catch (ClassNotFoundException | InstantiationException | IllegalAccessException e) {
+				e.printStackTrace();
+			}
+		} else if ("update".equals(mapper.getType())) {
+			return updateExecute(stmt);
+		}
+		DBManager.close(stmt);
+		DBManager.close(conn);
+		return null;
 	}
 
 	/**
+	 * 更新语句执行
+	 * 
+	 * @param stmt
+	 * @return
+	 * @throws SQLException
+	 */
+	public int updateExecute(PreparedStatement stmt) throws SQLException {
+		int executeUpdate = stmt.executeUpdate();
+		return executeUpdate;
+	}
+
+	/**
+	 * 查询语句执行
+	 * 
+	 * @throws ClassNotFoundException
+	 * @throws SQLException
+	 * @throws IllegalAccessException
+	 * @throws InstantiationException
 	 * 
 	 */
-	public Object selectExecute(Mapper mapper, Map<String, Object> map2) {
-		List<Object> list = new ArrayList<>();
-
-		Map<String, Object> paramMap = map2;
-		try {
-			Connection conn = getConn();
-			String statement = mapper.getStatement();
-			Map<Integer, Object> map = new HashMap<>();
-			int i = 1;
-			// test(statement, map, paramMap);
-			// System.out.println(statement);
-			while (statement.indexOf("#{") >= 0) {
-				String substring = statement.substring(statement.indexOf("#{") + 2, statement.indexOf("}"));
-				statement = statement.replace("#{" + substring + "}", "?");
-				Object object = paramMap.get(substring);
-				map.put(i, object);
-				i++;
-			}
-			System.out.println(statement);
-			PreparedStatement stmt = conn.prepareStatement(statement);
-			System.out.println(map.size());
-			for (Entry<Integer, Object> entry : map.entrySet()) {
-				stmt.setObject(entry.getKey(), entry.getValue());
-				System.out.println("param setting");
-			}
-			if ("select".equals(mapper.getType())) {
-				ResultSet rs = stmt.executeQuery();
-				while (rs.next()) {
-					Class<?> forName = Class.forName(mapper.getResultType());
-					Object newInstance = forName.newInstance();
-					Field[] declaredFields = forName.getDeclaredFields();
-					for (Field field : declaredFields) {
-						Class<?> type = field.getType();
-						String name = field.getName();
-						if (String.class.equals(type)) {
-							String string = rs.getString(name);
-							field.setAccessible(true);
-							field.set(newInstance, string);
-						}
-						if (Integer.class.equals(type)) {
-							Integer string = rs.getInt(name);
-							field.setAccessible(true);
-							field.set(newInstance, string);
-						}
-					}
-					list.add(newInstance);
+	public List selectExecute(Mapper mapper, PreparedStatement stmt)
+			throws ClassNotFoundException, SQLException, InstantiationException, IllegalAccessException {
+		List list = new ArrayList();
+		ResultSet rs = stmt.executeQuery();
+		while (rs.next()) {
+			Class<?> forName = Class.forName(mapper.getResultType());
+			Object newInstance = forName.newInstance();
+			Field[] declaredFields = forName.getDeclaredFields();
+			for (Field field : declaredFields) {
+				Class<?> type = field.getType();
+				String name = field.getName();
+				if (String.class.equals(type)) {
+					String string = rs.getString(name);
+					field.setAccessible(true);
+					field.set(newInstance, string);
 				}
-				DBManager.close(rs);
-				DBManager.close(stmt);
-				DBManager.close(conn);
-			} else if ("update".equals(mapper.getType())) {
-				System.out.println("update");
-				int executeUpdate = stmt.executeUpdate();
-				System.out.println("result is " + executeUpdate);
-				DBManager.close(stmt);
-				DBManager.close(conn);
-				return executeUpdate;
+				if (Integer.class.equals(type)) {
+					Integer string = rs.getInt(name);
+					field.setAccessible(true);
+					field.set(newInstance, string);
+				}
 			}
-
-		} catch (Exception e) {
-			e.printStackTrace();
+			list.add(newInstance);
 		}
-		if (list.size() == 0) {
+		DBManager.close(rs);
+		if (list.isEmpty()) {
 			list = null;
 		}
 		return list;

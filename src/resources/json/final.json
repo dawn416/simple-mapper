@@ -1,10 +1,16 @@
 {
-	"namespace": "com.demo.simple_mapper.test.Area",
+	"namespace": "com.demo.simple_mapper.test.AreaMapper",
 	"mapper": [
 		{
 			"id": "selectById",
 			"type": "select",
 			"statement": "select * from area where id = #{id}",
+			"resultType": "com.demo.simple_mapper.test.Area"
+		},
+		{
+			"id": "select",
+			"type": "select",
+			"statement": "select * from area",
 			"resultType": "com.demo.simple_mapper.test.Area"
 		},
 		{
