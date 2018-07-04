@@ -1,11 +1,8 @@
-/**
- * Copyright(C) 2018 Zhejiang Fline Technology Co., Ltd. All rights reserved.
- *
- */
 package com.demo.simple_mapper;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
+import java.lang.reflect.Parameter;
 import java.lang.reflect.Proxy;
 import java.sql.SQLException;
 import java.util.HashMap;
@@ -43,7 +40,10 @@ public class MyHandler implements InvocationHandler {
 		if (Object.class.equals(method.getDeclaringClass())) {
 			method.invoke(this, args);
 		}
-
+		Parameter[] parameters = method.getParameters();
+		for (Parameter parameter : parameters) {
+			System.out.println(parameter.getName());
+		}
 		return mapperMethod(method, args);
 	}
 

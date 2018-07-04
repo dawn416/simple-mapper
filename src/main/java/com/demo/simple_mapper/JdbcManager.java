@@ -1,7 +1,3 @@
-/**
- * Copyright(C) 2018 Zhejiang Fline Technology Co., Ltd. All rights reserved.
- *
- */
 package com.demo.simple_mapper;
 
 import java.lang.reflect.Field;
@@ -56,9 +52,14 @@ public class JdbcManager {
 
 				if (MyHandler.isMany.get()) {
 					return selectExecute;
-				} else {
+				}
+				if (selectExecute.size() == 1) {
 					return selectExecute.get(0);
 				}
+				if (selectExecute.size() == 0) {
+					return null;
+				}
+				throw new RuntimeException("返回实例数超过1");
 			} catch (ClassNotFoundException | InstantiationException | IllegalAccessException e) {
 				e.printStackTrace();
 			}
