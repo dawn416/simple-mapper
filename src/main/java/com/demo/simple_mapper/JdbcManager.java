@@ -9,9 +9,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
-import com.demo.simple_mapper.bean.Mapper;
+import com.demo.simple_mapper.bean.MethodInfo;
 import com.demo.simple_mapper.bean.SqlInfo;
 
 /**
@@ -25,46 +24,52 @@ public class JdbcManager {
 	/**
 	 *
 	 */
+	public static final String INSERT = "insert";
+	/**
+	 *
+	 */
+	public static final String DELETE = "delete";
+	/**
+	 *
+	 */
 	public static final String UPDATE = "update";
 	/**
 	 *
 	 */
 	public static final String SELECT = "select";
 
+
 	/**
 	 * 准备执行sql
 	 * 
-	 * @param mapper
-	 * @param paramMap
-	 * @throws SQLException
 	 */
-	public Object sqlPrepare(Mapper mapper, Map<String, Object> paramMap) throws SQLException {
-		Connection conn = DBManager.getConn();
-		String statement = mapper.getStatement();
-		SqlInfo sqlParsing = sqlParsing(paramMap, statement);
-		PreparedStatement stmt = conn.prepareStatement(sqlParsing.getSqlParsed());
+	public Object sqlExecuting(MethodInfo methodInfo, SqlInfo sqlParsing) throws SQLException {
+		Connection conn = null;
+		PreparedStatement stmt = null;
 		try {
+			conn = DBManager.getConn();
+			stmt = conn.prepareStatement(sqlParsing.getSqlParsed());
 			List<Object> parameterList = sqlParsing.getParameterList();
 			for (int i = 0, j = 1; i < parameterList.size(); i++, j++) {
 				stmt.setObject(j, parameterList.get(i));
 			}
-			if (SELECT.equals(mapper.getType())) {
-				try {
-					List selectExecute = selectExecute(mapper, stmt);
-					if (mapper.isMany()) {
-						return selectExecute;
-					}
-					if (selectExecute.size() == 1) {
-						return selectExecute.get(0);
-					}
-					if (selectExecute.size() == 0) {
-						return null;
-					}
-					throw new RuntimeException("返回实例数超过1个");
-				} catch (ClassNotFoundException | InstantiationException | IllegalAccessException e) {
-					e.printStackTrace();
+			System.out.println("1111111");
+			if (SELECT.equals(methodInfo.getSqlType())) {
+				List selectExecute = selectExecute(methodInfo, stmt);
+				if (methodInfo.isMany()) {
+					return selectExecute;
 				}
-			} else if (UPDATE.equals(mapper.getType())) {
+				if (selectExecute.size() == 1) {
+					return selectExecute.get(0);
+				}
+				if (selectExecute.size() == 0) {
+					return null;
+				}
+				throw new RuntimeException("返回实例数超过1个");
+			} else if (UPDATE.equals(methodInfo.getSqlType()) || DELETE.equals(methodInfo.getSqlType())) {
+				return updateExecute(stmt);
+			} else if (INSERT.equals(methodInfo.getSqlType())) {
+				// TODO 若为自定义类型，要返回主键值
 				return updateExecute(stmt);
 			}
 			return null;
@@ -75,63 +80,49 @@ public class JdbcManager {
 	}
 
 	/**
-	 * @param paramMap
-	 * @param statement
-	 * @param sqlAttrList
-	 * @return
-	 */
-	private SqlInfo sqlParsing(Map<String, Object> paramMap, String statement) {
-		List<Object> sqlAttrList = new ArrayList<>();
-		while (statement.indexOf("#{") >= 0) {
-			String substring = statement.substring(statement.indexOf("#{") + 2, statement.indexOf("}"));
-			statement = statement.replace("#{" + substring + "}", "?");
-			Object object = paramMap.get(substring.trim());
-			sqlAttrList.add(object);
-		}
-		SqlInfo sqlInfo = new SqlInfo();
-		sqlInfo.setSqlParsed(statement);
-		sqlInfo.setParameterList(sqlAttrList);
-		return sqlInfo;
-	}
-
-	/**
 	 * 更新语句执行
 	 * 
-	 * @param stmt
-	 * @return
-	 * @throws SQLException
 	 */
-	public int updateExecute(PreparedStatement stmt) throws SQLException {
+	private int updateExecute(PreparedStatement stmt) throws SQLException {
 		return stmt.executeUpdate();
 	}
 
 	/**
 	 * 查询语句执行
-	 * 
-	 * @throws ClassNotFoundException
-	 * @throws SQLException
-	 * @throws IllegalAccessException
-	 * @throws InstantiationException
-	 * 
+	 *
 	 */
-	public List selectExecute(Mapper mapper, PreparedStatement stmt)
-			throws ClassNotFoundException, SQLException, InstantiationException, IllegalAccessException {
+	private List selectExecute(MethodInfo methodInfo, PreparedStatement stmt) {
 		List list = new ArrayList();
-		ResultSet rs = stmt.executeQuery();
-		while (rs.next()) {
-			Class<?> forName = mapper.getReturnType();
-			Object newInstance = forName.newInstance();
-			Field[] declaredFields = forName.getDeclaredFields();
-			for (Field field : declaredFields) {
-				resultSetMapping(rs, newInstance, field);
+		ResultSet rs = null;
+		try {
+			rs = stmt.executeQuery();
+			while (rs.next()) {
+				Class<?> forName = methodInfo.getResultType();
+				Object newInstance = forName.newInstance();
+				Field[] declaredFields = forName.getDeclaredFields();
+				for (Field field : declaredFields) {
+					resultSetMapping(rs, newInstance, field);
+				}
+				list.add(newInstance);
 			}
-			list.add(newInstance);
+		} catch (InstantiationException e) {
+			e.printStackTrace();
+		} catch (IllegalAccessException e) {
+			e.printStackTrace();
+		} catch (SecurityException e) {
+			e.printStackTrace();
+		} catch (SQLException e) {
+			e.printStackTrace();
+		} finally {
+			DBManager.close(rs);
 		}
-		DBManager.close(rs);
+
 		return list;
 	}
 
 	/**
+	 * 返回数据放入bean中
+	 * 
 	 * @param rs
 	 * @param newInstance
 	 * @param field
@@ -148,9 +139,9 @@ public class JdbcManager {
 			field.set(newInstance, string);
 		}
 		if (Integer.class.equals(type)) {
-			int string = rs.getInt(name);
+			int int1 = rs.getInt(name);
 			field.setAccessible(true);
-			field.set(newInstance, string);
+			field.set(newInstance, int1);
 		}
 		if (Long.class.equals(type)) {
 			long long1 = rs.getLong(name);
