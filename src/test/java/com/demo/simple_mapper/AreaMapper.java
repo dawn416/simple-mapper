@@ -15,6 +15,7 @@ import com.demo.simple_mapper.annotation.Update;
  *
  */
 public interface AreaMapper {
+
 	@Select("select * from area where id = #{id}")
 	public Area selectById(@Param("id") int id);
 

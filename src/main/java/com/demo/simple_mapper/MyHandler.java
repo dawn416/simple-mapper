@@ -38,7 +38,6 @@ public class MyHandler implements InvocationHandler {
 			method.invoke(this, args);
 		}
 		MethodInfo analyzeMethod = analyzeMethod(method);
-		System.out.println(analyzeMethod);
 		return mapperMethod(analyzeMethod, args);
 	}
 
@@ -49,10 +48,8 @@ public class MyHandler implements InvocationHandler {
 		String name = methodInfo.getMethodName();
 		JdbcManager jdbcManager = new JdbcManager();
 		if (args == null) {
-			// 执行
 			return dosomething(methodInfo, args, jdbcManager);
 		} else if (methodInfo.getParamAnnos().size() == args.length) {
-			// 执行
 			return dosomething(methodInfo, args, jdbcManager);
 		}
 		throw new RuntimeException("注解个数与参数个数不匹配");
@@ -68,7 +65,8 @@ public class MyHandler implements InvocationHandler {
 		String statement = methodInfo.getExecuteSql();
 		List<Object> sqlAttrList = new ArrayList<>();
 		while (statement.indexOf("#{") >= 0) {
-			String substring = statement.substring(statement.indexOf("#{") + 2, statement.indexOf("}"));
+			String substring = statement.substring(statement.indexOf("#{") + 2,
+					statement.indexOf("}", statement.indexOf("#{") + 2));
 			statement = statement.replace("#{" + substring + "}", "?");
 			// 是否能匹配
 			boolean flag = false;

@@ -53,7 +53,6 @@ public class JdbcManager {
 			for (int i = 0, j = 1; i < parameterList.size(); i++, j++) {
 				stmt.setObject(j, parameterList.get(i));
 			}
-			System.out.println("1111111");
 			if (SELECT.equals(methodInfo.getSqlType())) {
 				List selectExecute = selectExecute(methodInfo, stmt);
 				if (methodInfo.isMany()) {

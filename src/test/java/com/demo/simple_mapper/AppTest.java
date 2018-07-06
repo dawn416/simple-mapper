@@ -39,8 +39,6 @@ public class AppTest {
 	@Test
 	public void test1() throws JsonParseException, JsonMappingException, IOException {
 
-		// MyHandler myHandler = App.init();
-		// AreaMapper areaMapper = myHandler.newInstance(AreaMapper.class);
 		Class<AreaMapper> clz = AreaMapper.class;
 		Method[] methods = clz.getMethods();
 		for (Method method : methods) {
