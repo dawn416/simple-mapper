@@ -1,9 +1,7 @@
 package com.demo.simple_mapper;
 
 import java.lang.reflect.Field;
-import java.math.BigDecimal;
 import java.sql.Connection;
-import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -38,7 +36,6 @@ public class JdbcManager {
 	 */
 	public static final String SELECT = "select";
 
-
 	/**
 	 * 准备执行sql
 	 * 
@@ -61,7 +58,7 @@ public class JdbcManager {
 				if (selectExecute.size() == 1) {
 					return selectExecute.get(0);
 				}
-				if (selectExecute.size() == 0) {
+				if (selectExecute.isEmpty()) {
 					return null;
 				}
 				throw new RuntimeException("返回实例数超过1个");
@@ -104,13 +101,7 @@ public class JdbcManager {
 				}
 				list.add(newInstance);
 			}
-		} catch (InstantiationException e) {
-			e.printStackTrace();
-		} catch (IllegalAccessException e) {
-			e.printStackTrace();
-		} catch (SecurityException e) {
-			e.printStackTrace();
-		} catch (SQLException e) {
+		} catch (InstantiationException | IllegalAccessException | SecurityException | SQLException e) {
 			e.printStackTrace();
 		} finally {
 			DBManager.close(rs);
@@ -130,57 +121,11 @@ public class JdbcManager {
 	 */
 	private void resultSetMapping(ResultSet rs, Object newInstance, Field field)
 			throws SQLException, IllegalAccessException {
-		Class<?> type = field.getType();
+
 		String name = field.getName();
-		if (String.class.equals(type)) {
-			String string = rs.getString(name);
-			field.setAccessible(true);
-			field.set(newInstance, string);
-		}
-		if (Integer.class.equals(type)) {
-			int int1 = rs.getInt(name);
-			field.setAccessible(true);
-			field.set(newInstance, int1);
-		}
-		if (Long.class.equals(type)) {
-			long long1 = rs.getLong(name);
-			field.setAccessible(true);
-			field.set(newInstance, long1);
-		}
-		if (Short.class.equals(type)) {
-			short short1 = rs.getShort(name);
-			field.setAccessible(true);
-			field.set(newInstance, short1);
-		}
-		if (Byte.class.equals(type)) {
-			byte byte1 = rs.getByte(name);
-			field.setAccessible(true);
-			field.set(newInstance, byte1);
-		}
-		if (Double.class.equals(type)) {
-			double double1 = rs.getDouble(name);
-			field.setAccessible(true);
-			field.set(newInstance, double1);
-		}
-		if (Float.class.equals(type)) {
-			float float1 = rs.getFloat(name);
-			field.setAccessible(true);
-			field.set(newInstance, float1);
-		}
-		if (Date.class.equals(type)) {
-			Date date = rs.getDate(name);
-			field.setAccessible(true);
-			field.set(newInstance, date);
-		}
-		if (BigDecimal.class.equals(type)) {
-			BigDecimal bigDecimal = rs.getBigDecimal(name);
-			field.setAccessible(true);
-			field.set(newInstance, bigDecimal);
-		}
-		if (Boolean.class.equals(type)) {
-			boolean boolean1 = rs.getBoolean(name);
-			field.setAccessible(true);
-			field.set(newInstance, boolean1);
-		}
+		Object object = rs.getObject(name);
+		field.setAccessible(true);
+		field.set(newInstance, object);
+
 	}
 }

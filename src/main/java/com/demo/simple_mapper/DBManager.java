@@ -1,11 +1,14 @@
 package com.demo.simple_mapper;
 
 import java.io.Closeable;
+import java.io.IOException;
+import java.io.InputStream;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.Properties;
 
 /**
  * 
@@ -21,17 +24,18 @@ public class DBManager {
 	 * @return java.sql.Connection
 	 */
 	public static Connection getConn() {
-		String driver = "com.mysql.jdbc.Driver";
-		String url = "jdbc:mysql://localhost:3306/saizhi?useUnicode=true&characterEncoding=UTF8";
-		String username = "root";
-		String password = "123456";
 		Connection conn = null;
+		Properties prop = new Properties();
+		InputStream resourceAsStream = App.class.getResourceAsStream("/jdbc.properties");
 		try {
+			prop.load(resourceAsStream);
+			String driver = prop.getProperty("driver");
+			String url = prop.getProperty("url");
+			String username = prop.getProperty("username");
+			String password = prop.getProperty("password");
 			Class.forName(driver);
 			conn = DriverManager.getConnection(url, username, password);
-		} catch (ClassNotFoundException e) {
-			e.printStackTrace();
-		} catch (SQLException e) {
+		} catch (ClassNotFoundException | SQLException | IOException e) {
 			e.printStackTrace();
 		}
 		return conn;
