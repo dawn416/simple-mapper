@@ -19,12 +19,14 @@ public class App {
 
 	// 读取配置文件应该加双检锁保证多线程安全，并保证性能
 	public static MyHandler init() throws JsonParseException, JsonMappingException, IOException {
+
 		if (App.readValue == null) {
 			ObjectMapper objm = new ObjectMapper();
 			synchronized (App.class) {
 				if (App.readValue == null) {
 					InputStream systemResourceAsStream = ClassLoader.getSystemResourceAsStream("json/final.json");
 					App.readValue = objm.readValue(systemResourceAsStream, Property.class);
+					System.out.println(App.readValue);
 					systemResourceAsStream.close();
 				}
 			}

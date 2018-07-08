@@ -16,7 +16,6 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 
 public class AppTest {
 
-
 	@Test
 	public void test() throws IOException, NoSuchMethodException, SecurityException {
 
@@ -54,7 +53,7 @@ public class AppTest {
 				}
 			}
 			if (returnType != null) {
-				if(returnType.isAssignableFrom(List.class)){
+				if (returnType.isAssignableFrom(List.class)) {
 					// Type type = ((ParameterizedType)
 					// returnType.getGenericSuperclass()).getActualTypeArguments()[0];
 					// Type[] genericInterfaces =
@@ -63,7 +62,7 @@ public class AppTest {
 					// genericInterfaces[0].getClass();
 					System.out.println(
 							"泛型类型：" + ((ParameterizedType) method.getGenericReturnType()).getActualTypeArguments()[0]);
-				}else{
+				} else {
 					System.out.println(returnType.getName());
 				}
 			}

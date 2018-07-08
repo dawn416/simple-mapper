@@ -45,11 +45,11 @@ public class MyHandler implements InvocationHandler {
 	 * 真正的执行过程
 	 */
 	public Object mapperMethod(MethodInfo methodInfo, Object[] args) {
-		String name = methodInfo.getMethodName();
 		JdbcManager jdbcManager = new JdbcManager();
 		if (args == null) {
 			return dosomething(methodInfo, args, jdbcManager);
-		} else if (methodInfo.getParamAnnos().size() == args.length) {
+		}
+		if (args != null && methodInfo.getParamAnnos().size() == args.length) {
 			return dosomething(methodInfo, args, jdbcManager);
 		}
 		throw new RuntimeException("注解个数与参数个数不匹配");
@@ -88,7 +88,6 @@ public class MyHandler implements InvocationHandler {
 		try {
 			return jdbcManager.sqlExecuting(methodInfo, sqlInfo);
 		} catch (SQLException e) {
-			e.printStackTrace();
 		}
 		return null;
 	}
