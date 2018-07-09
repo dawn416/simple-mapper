@@ -4,6 +4,7 @@ import java.lang.reflect.Field;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
@@ -45,6 +46,7 @@ public class JdbcManager {
 		PreparedStatement stmt = null;
 		try {
 			conn = DBManager.getConn();
+			System.out.println(sqlParsing.getSqlParsed());
 			stmt = conn.prepareStatement(sqlParsing.getSqlParsed());
 			List<Object> parameterList = sqlParsing.getParameterList();
 			for (int i = 0, j = 1; i < parameterList.size(); i++, j++) {
@@ -92,40 +94,30 @@ public class JdbcManager {
 		ResultSet rs = null;
 		try {
 			rs = stmt.executeQuery();
+			ResultSetMetaData rsmd = rs.getMetaData();
+			int columnCount = rsmd.getColumnCount();
 			while (rs.next()) {
-				Class<?> forName = methodInfo.getResultType();
-				Object newInstance = forName.newInstance();
-				Field[] declaredFields = forName.getDeclaredFields();
-				for (Field field : declaredFields) {
-					resultSetMapping(rs, newInstance, field);
+				for (int i = 0; i < columnCount; i++) {
+					String columnName = rsmd.getColumnName(i + 1);
+					Class<?> forName = methodInfo.getResultType();
+					Field[] declaredFields = forName.getDeclaredFields();
+					Object newInstance = forName.newInstance();
+					for (Field field : declaredFields) {
+						if (field.getName().equals(columnName)) {
+							Object object = rs.getObject(columnName);
+							field.setAccessible(true);
+							field.set(newInstance, object);
+						}
+					}
+					list.add(newInstance);
 				}
-				list.add(newInstance);
 			}
 		} catch (InstantiationException | IllegalAccessException | SecurityException | SQLException e) {
 			e.printStackTrace();
 		} finally {
 			DBManager.close(rs);
 		}
-
 		return list;
 	}
 
-	/**
-	 * 返回数据放入bean中
-	 * 
-	 * @param rs
-	 * @param newInstance
-	 * @param field
-	 * @throws SQLException
-	 * @throws IllegalAccessException
-	 */
-	private void resultSetMapping(ResultSet rs, Object newInstance, Field field)
-			throws SQLException, IllegalAccessException {
-
-		String name = field.getName();
-		Object object = rs.getObject(name);
-		field.setAccessible(true);
-		field.set(newInstance, object);
-
-	}
 }

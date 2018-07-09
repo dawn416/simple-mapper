@@ -3,7 +3,7 @@ package com.demo.simple_mapper;
 public class User {
 	private Integer id;
 	private String account;
-	private String passwrod;
+	private String password;
 
 	public Integer getId() {
 		return id;
@@ -21,12 +21,17 @@ public class User {
 		this.account = account;
 	}
 
-	public String getPasswrod() {
-		return passwrod;
+	public String getPassword() {
+		return password;
 	}
 
-	public void setPasswrod(String passwrod) {
-		this.passwrod = passwrod;
+	public void setPassword(String password) {
+		this.password = password;
+	}
+
+	@Override
+	public String toString() {
+		return "User [id=" + id + ", account=" + account + ", password=" + password + "]";
 	}
 
 }
