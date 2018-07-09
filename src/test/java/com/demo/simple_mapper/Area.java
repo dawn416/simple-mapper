@@ -1,4 +1,4 @@
-package com.demo.simple_mapper.test;
+package com.demo.simple_mapper;
 
 /**
  * @since 2018年6月29日 上午10:03:10

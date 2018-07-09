@@ -1,48 +1,84 @@
 package com.demo.simple_mapper;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.lang.reflect.Method;
-import java.util.HashMap;
+import java.lang.reflect.Parameter;
+import java.lang.reflect.ParameterizedType;
 import java.util.List;
-import java.util.Map;
 
-import org.junit.Assert;
 import org.junit.Test;
 
-import com.demo.simple_mapper.bean.Property;
-import com.demo.simple_mapper.test.Area;
-import com.demo.simple_mapper.test.AreaMapper;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.demo.simple_mapper.annotation.Param;
+import com.demo.simple_mapper.annotation.Select;
+import com.demo.simple_mapper.annotation.Update;
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.databind.JsonMappingException;
 
 public class AppTest {
 
-	public void method(String name) {
-
-	}
 	@Test
 	public void test() throws IOException, NoSuchMethodException, SecurityException {
-		ObjectMapper objm = new ObjectMapper();
-		InputStream systemResourceAsStream = ClassLoader.getSystemResourceAsStream("json/final.json");
-		App.readValue = objm.readValue(systemResourceAsStream, Property.class);
-		systemResourceAsStream.close();
-		Class<AppTest> clz = AppTest.class;
-		Method method = clz.getMethod("method", String.class);
-		System.out.println(method.getParameters()[0].getName());
-		MyHandler myHandler = new MyHandler();
-		AreaMapper newInstance = myHandler.newInstance(AreaMapper.class);
 
-		Map<String, Object> map = new HashMap<>();
-		map.put("id", 2);
-		map.put("name", " 发斯蒂芬");
-		int updateById = newInstance.updateById(map);
-		Assert.assertTrue(updateById == 1);
-		Area selectById = newInstance.selectById(map);
-		Assert.assertNotNull(selectById);
-		List<Area> select = newInstance.select();
-		// Assert.assertTrue(select.size() == 3);
-		map.put("id", 6);
-		Area selectById6 = newInstance.selectById(map);
-		Assert.assertNull(selectById6);
+		MyHandler myHandler = App.init();
+
+		AreaMapper areaMapper = myHandler.newInstance(AreaMapper.class);
+
+		// Area selectById = areaMapper.selectById(1);
+		// System.out.println(selectById);
+		// int updateById = areaMapper.updateById("马马密码", 1);
+		// System.out.println(updateById);
+		// List<Area> select = areaMapper.select();
+		// System.out.println(select);
+		// int deleteById = areaMapper.deleteById(60);
+		// System.out.println(deleteById);
+		// int insert = areaMapper.insert("艰苦艰苦");
+		// System.out.println(insert);
+
+		UserMapper userMappper = myHandler.newInstance(UserMapper.class);
+		System.out.println(userMappper.selectById(1));
+	}
+
+	@Test
+	public void test1() throws JsonParseException, JsonMappingException, IOException {
+
+		Class<AreaMapper> clz = AreaMapper.class;
+		Method[] methods = clz.getMethods();
+		for (Method method : methods) {
+			System.out.println(method.getName());
+			Class<?> returnType = method.getReturnType();
+			// Annotation[][] parameterAnnotations =
+			// method.getParameterAnnotations();
+			Parameter[] parameters = method.getParameters();
+			for (Parameter parameter : parameters) {
+				Param annotation = parameter.getAnnotation(Param.class);
+				if (annotation != null) {
+					System.out.println(annotation.value());
+				}
+			}
+			if (returnType != null) {
+				if (returnType.isAssignableFrom(List.class)) {
+					// Type type = ((ParameterizedType)
+					// returnType.getGenericSuperclass()).getActualTypeArguments()[0];
+					// Type[] genericInterfaces =
+					// returnType.getGenericInterfaces();
+					// Class<? extends Type> class1 =
+					// genericInterfaces[0].getClass();
+					System.out.println(
+							"泛型类型：" + ((ParameterizedType) method.getGenericReturnType()).getActualTypeArguments()[0]);
+				} else {
+					System.out.println(returnType.getName());
+				}
+			}
+
+			Select select = method.getAnnotation(Select.class);
+			if (select != null) {
+				System.out.println(select.value());
+			}
+			Update update = method.getAnnotation(Update.class);
+			if (update != null) {
+				System.out.println(update.value());
+			}
+
+		}
 	}
 }
