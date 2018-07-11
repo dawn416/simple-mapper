@@ -47,6 +47,7 @@ public class JdbcManager {
 		try {
 			conn = DBManager.getConn();
 			System.out.println(sqlParsing.getSqlParsed());
+			System.out.println(sqlParsing.getParameterList());
 			stmt = conn.prepareStatement(sqlParsing.getSqlParsed());
 			List<Object> parameterList = sqlParsing.getParameterList();
 			for (int i = 0, j = 1; i < parameterList.size(); i++, j++) {
@@ -96,21 +97,25 @@ public class JdbcManager {
 			rs = stmt.executeQuery();
 			ResultSetMetaData rsmd = rs.getMetaData();
 			int columnCount = rsmd.getColumnCount();
+			List<String> columnlist = new ArrayList<>();
+			for (int i = 0; i < columnCount; i++) {
+				String columnName = rsmd.getColumnName(i + 1);
+				columnlist.add(columnName);
+			}
+			Class<?> forName = methodInfo.getResultType();
+			Field[] declaredFields = forName.getDeclaredFields();
 			while (rs.next()) {
-				for (int i = 0; i < columnCount; i++) {
-					String columnName = rsmd.getColumnName(i + 1);
-					Class<?> forName = methodInfo.getResultType();
-					Field[] declaredFields = forName.getDeclaredFields();
-					Object newInstance = forName.newInstance();
+				Object newInstance = forName.newInstance();
+				for (String columnName : columnlist) {
+					Object object = rs.getObject(columnName);
 					for (Field field : declaredFields) {
-						if (field.getName().equals(columnName)) {
-							Object object = rs.getObject(columnName);
+						if (columnName.equals(field.getName())) {
 							field.setAccessible(true);
 							field.set(newInstance, object);
 						}
 					}
-					list.add(newInstance);
 				}
+				list.add(newInstance);
 			}
 		} catch (InstantiationException | IllegalAccessException | SecurityException | SQLException e) {
 			e.printStackTrace();

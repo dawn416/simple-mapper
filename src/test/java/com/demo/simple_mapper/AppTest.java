@@ -23,16 +23,16 @@ public class AppTest {
 
 		AreaMapper areaMapper = myHandler.newInstance(AreaMapper.class);
 
-		// Area selectById = areaMapper.selectById(1);
-		// System.out.println(selectById);
-		// int updateById = areaMapper.updateById("马马密码", 1);
-		// System.out.println(updateById);
-		// List<Area> select = areaMapper.select();
-		// System.out.println(select);
-		// int deleteById = areaMapper.deleteById(60);
-		// System.out.println(deleteById);
-		// int insert = areaMapper.insert("艰苦艰苦");
-		// System.out.println(insert);
+		Area selectById = areaMapper.selectById(4);
+		System.out.println(selectById);
+		int updateById = areaMapper.updateById("马马密码", 1);
+		System.out.println(updateById);
+		List<Area> select = areaMapper.select();
+		System.out.println(select);
+		int deleteById = areaMapper.deleteById(60);
+		System.out.println(deleteById);
+		int insert = areaMapper.insert("艰苦艰苦");
+		System.out.println(insert);
 
 		UserMapper userMappper = myHandler.newInstance(UserMapper.class);
 		System.out.println(userMappper.selectById(1));
