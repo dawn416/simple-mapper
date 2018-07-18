@@ -19,9 +19,7 @@ public class AppTest {
 	@Test
 	public void test() throws IOException, NoSuchMethodException, SecurityException {
 
-		MyHandler myHandler = App.init();
-
-		AreaMapper areaMapper = myHandler.newInstance(AreaMapper.class);
+		AreaMapper areaMapper = MyHandler.newInstance(AreaMapper.class);
 
 		Area selectById = areaMapper.selectById(4);
 		System.out.println(selectById);
@@ -34,10 +32,19 @@ public class AppTest {
 		int insert = areaMapper.insert("艰苦艰苦");
 		System.out.println(insert);
 
-		UserMapper userMappper = myHandler.newInstance(UserMapper.class);
-		System.out.println(userMappper.selectById(1));
+		UserMapper userMappper = MyHandler.newInstance(UserMapper.class);
+		System.out.println(userMappper.selectByUserId(1));
 	}
 
+	@Test
+	public void proxyTest() {
+
+		Class<?>[] interfaces = InterfacePojo.class.getInterfaces();
+		for (Class<?> class1 : interfaces) {
+			System.out.println(class1.getSimpleName());
+		}
+
+	}
 	@Test
 	public void test1() throws JsonParseException, JsonMappingException, IOException {
 

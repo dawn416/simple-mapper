@@ -27,15 +27,15 @@ import com.demo.simple_mapper.bean.SqlInfo;
 public class MyHandler implements InvocationHandler {
 
 	@SuppressWarnings("unchecked")
-	public <T> T newInstance(Class<T> clz) {
-		return (T) Proxy.newProxyInstance(clz.getClassLoader(), new Class[] { clz }, this);
+	public static <T> T newInstance(Class<T> clz) {
+		return (T) Proxy.newProxyInstance(clz.getClassLoader(), new Class[] { clz }, new MyHandler());
 	}
 
 	@Override
 	public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-		// 如果是Object类的方法，则调用当前对象的方法
+		// 如果是Object类的方法，则调用当前对象的方法(因为是接口，根本不可能进if)
 		if (Object.class.equals(method.getDeclaringClass())) {
-			method.invoke(this, args);
+			return method.invoke(this, args);
 		}
 		MethodInfo analyzeMethod = analyzeMethod(method);
 		return mapperMethod(analyzeMethod, args);

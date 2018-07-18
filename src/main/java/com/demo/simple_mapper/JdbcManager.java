@@ -46,8 +46,8 @@ public class JdbcManager {
 		PreparedStatement stmt = null;
 		try {
 			conn = DBManager.getConn();
-			System.out.println(sqlParsing.getSqlParsed());
-			System.out.println(sqlParsing.getParameterList());
+			System.out.println("sql:" + sqlParsing.getSqlParsed());
+			System.out.println("params:" + sqlParsing.getParameterList());
 			stmt = conn.prepareStatement(sqlParsing.getSqlParsed());
 			List<Object> parameterList = sqlParsing.getParameterList();
 			for (int i = 0, j = 1; i < parameterList.size(); i++, j++) {
