@@ -4,6 +4,8 @@
 
 ##使用方式
 
+配置jdbc.properties
+
 写一个接口，方法上加上注解@Select/@Update/@Delete/@Insert，注解参数中写入SQL语句， 参数用'#{}'包围
 
 方法参数前加上注解@Param对应SQL语句中的参数名
